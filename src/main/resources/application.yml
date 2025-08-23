@@ -1,0 +1,28 @@
+
+spring:
+  application:
+    name: ticket-booking-consumer
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/citizenservice
+    username: root
+    password: WANAparthy@544
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jpa:
+    hibernate:
+      ddl-auto: update   # create, update, validate
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+server:
+  port: 8082
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: ticket-processor
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.ticket.booking.consumer.entity
+        spring.json.value.default.type: com.ticket.booking.consumer.entity.TicketBookedEvent
