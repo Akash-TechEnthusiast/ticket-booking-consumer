@@ -5,12 +5,14 @@ import com.ticket.booking.consumer.entity.TicketBookedEvent;
 import com.ticket.booking.consumer.repo.ProcessedTicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class TicketBookedListener {
     private final ProcessedTicketRepository repo;
+    private final KafkaTemplate<String, TicketBookedEvent> kafka;
 
     @KafkaListener(topics = "ticket.booked", groupId = "ticket-processor")
     public void consume(TicketBookedEvent event) {
@@ -21,5 +23,6 @@ public class TicketBookedListener {
         t.setTrainId(event.getTrainId());
         t.setStatus("CONFIRMED"); // logic could check seat availability
         repo.save(t);
+        kafka.send("ticket.confirmed", event.getBookingId().toString(), event);
     }
 }

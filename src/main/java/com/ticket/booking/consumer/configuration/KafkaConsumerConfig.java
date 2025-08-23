@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaProducerConfig {
+public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, TicketBookedEvent> kafkaListenerContainerFactory(
@@ -37,6 +37,25 @@ public class KafkaProducerConfig {
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.ticket.booking.consumer.entity");
         config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.ticket.booking.consumer.entity.TicketBookedEvent");
         return new DefaultKafkaConsumerFactory<>(config);
+    }
+
+
+    @Bean
+    public ProducerFactory<String, TicketBookedEvent> producerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, org.springframework.kafka.support.serializer.JsonSerializer.class);
+
+        // Optional: to trust all packages for JSON serialization
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    @Bean
+    public KafkaTemplate<String, TicketBookedEvent> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
     }
 
 }
