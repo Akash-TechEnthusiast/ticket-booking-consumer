@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TicketBookedListener {
+public class ReadAndWriteToTopic {
     private final ProcessedTicketRepository repo;
     private final SeatAvailabilityService seatService;
-    private final KafkaTemplate<Object, Object> kafka;
+    private final KafkaTemplate<String, TicketBookedEvent> kafka;
 
     @KafkaListener(topics = "ticket.booked", groupId = "ticket-processor")
     public void consume(TicketBookedEvent event) {

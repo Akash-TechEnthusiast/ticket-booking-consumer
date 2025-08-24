@@ -46,7 +46,7 @@ public class KafkaConsumerConfig {
 
 
     @Bean
-    public ProducerFactory<Object, Object> producerFactory() {
+    public ProducerFactory<String, TicketBookedEvent> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class);
@@ -59,7 +59,7 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public KafkaTemplate<Object, Object> kafkaTemplate() {
+    public KafkaTemplate<String, TicketBookedEvent> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
