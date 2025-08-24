@@ -25,10 +25,15 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, TicketBookedEvent> kafkaListenerContainerFactory(
-            ConsumerFactory<String, TicketBookedEvent> consumerFactory) {
+            ConsumerFactory<String, TicketBookedEvent> consumerFactory, KafkaTemplate<String, TicketBookedEvent> kafkaTemplat) {
         ConcurrentKafkaListenerContainerFactory<String, TicketBookedEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new DeadLetterPublishingRecoverer(kafkaTemplat,
+                        (r, e) -> new TopicPartition("ticket-booked-dlq", r.partition())),
+                new FixedBackOff(1000L, 2L) // retry twice with 1s delay
+        ));
         return factory;
     }
 
@@ -63,6 +68,27 @@ public class KafkaConsumerConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
+
+    @Bean
+    public ConsumerFactory<String, TicketBookedEvent> dlqConsumerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "dlq-group");
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        config.put(JsonDeserializer.TRUSTED_PACKAGES, "com.ticket.booking.consumer.entity");
+        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE,
+                "com.ticket.booking.consumer.entity.TicketBookedEvent");
+        return new DefaultKafkaConsumerFactory<>(config);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, TicketBookedEvent> dlqKafkaListenerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, TicketBookedEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(dlqConsumerFactory());
+        return factory;
+    }
 
 
 

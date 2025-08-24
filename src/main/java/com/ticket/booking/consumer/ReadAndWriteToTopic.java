@@ -20,7 +20,7 @@ public class ReadAndWriteToTopic {
     public void consume(TicketBookedEvent event) {
         System.out.println("Consumed booking: " + event);
         if ("12723".equals(event.getTrainId())) {
-            //throw new RuntimeException("Failed processing ticket for trainId 12723");
+            throw new RuntimeException("Failed processing ticket for trainId 12723");
         }
         boolean seatAvailable = seatService.checkAndReserveSeat(event.getTrainId());
 
